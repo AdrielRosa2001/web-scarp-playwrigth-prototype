@@ -12,35 +12,63 @@ class SearchBot():
         self.indexer = None
         self.key_pharse = None
 
-    def search_terms(self) -> dict:
+    def search_terms(self, quantity_of_pages) -> dict:
         links_filtrados = 0
         links_casa = []
+        attemps_to_locator = 0
+        cont_loop = 0
         self.driver.get(self.indexer['url_search'])
 
         try:
             campo_de_busca = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, self.indexer['search_bar'])))
             campo_de_busca.send_keys(self.key_pharse, Keys.ENTER)
             
-            self.driver.implicitly_wait(5)
+            #self.driver.implicitly_wait(5)
             body = self.driver.find_element(By.TAG_NAME, 'body')
-            for i in range(5):
+            for i in range(7):
                 body.send_keys(Keys.END)
-                time.sleep(1)
-            self.driver.implicitly_wait(3)
+                #self.driver.implicitly_wait(1)
+                #self.driver.implicitly_wait(3)
             try:
+                
                 while True:
-                    body.send_keys(Keys.END)
-                    body.send_keys(Keys.END)
-                    mais_detalhes = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, f'{self.indexer['xpath_more']}')))
-                    if len(mais_detalhes) != 0 or len(mais_detalhes) != None:
-                        botao_mostrar_mais = mais_detalhes.find_element(By.XPATH, f".//*[contains(text(), '{self.indexer['value_more']}')]")
-                        mais_detalhes.click()
+                    self.driver.implicitly_wait(0.5)
+                    body = self.driver.find_element(By.TAG_NAME, 'body')
+                    for i in range(7):
                         body.send_keys(Keys.END)
-                        print(0.5)
-                    else:
-                        break
-            except:
-                pass
+                    
+                    #self.driver.implicitly_wait(0.3)
+                    
+                    #time.sleep(0.8)
+                    #mais_detalhes = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, self.indexer['xpath_more'])))
+                    
+                    if quantity_of_pages != None:
+                        if cont_loop == quantity_of_pages:
+                            break
+                    try:
+                        mais_detalhes = WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.XPATH, self.indexer['xpath_more'])))
+                        #botao_mostrar_mais = mais_detalhes.find_element(By.XPATH, f".//*[contains(text(), '{self.indexer['value_more']}')]")
+                        mais_detalhes.click()
+                    except:
+                        if attemps_to_locator< 30:
+                            if self.indexer['captcher'] != None:
+                                try:
+                                    captcher = self.driver.find_element(By.XPATH, self.indexer['captcher']['xpath_catcher'])
+                                    print("Captcher de segurança encontrado, o script encerrará as buscas!")
+                                    break
+                                except:
+                                    # sem captcher
+                                    pass
+                                # body = self.driver.find_element(By.TAG_NAME, 'body')
+                                # for i in range(7):
+                                #     body.send_keys(Keys.END)
+                            attemps_to_locator = attemps_to_locator +1
+                        else:
+                            break
+                    cont_loop = cont_loop + 1
+
+            except Exception as error_ocurred:
+                print(error_ocurred)
 
         finally:
             # Encontrar os elementos de resultado de pesquisa (links)

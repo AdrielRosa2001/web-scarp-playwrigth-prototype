@@ -8,32 +8,30 @@ from modules_search_bot.modules import SearchBot
 import time
 
 key_pharse = "inurl:/home/game?gameCategoryId=0"
-indexers_old = [
+indexers = [
     {
         "indexer": "google",
         "url_search": 'https://www.google.com.br',
         "search_bar": '//*[@id="APjFqb"]',
         "xpath_more": '//*[@id="botstuff"]/div/div[4]/div[4]/a[1]',
-        "value_more": 'Mais resultados'
+        "value_more": 'Mais resultados',
+        "captcher": None
     },
     {
         "indexer": "yandex",
         "url_search": 'https://yandex.com/',
         "search_bar": '//*[@id="text"]',
-        "xpath_more": '/html/body/main/div[2]/div[2]/div/div/div[1]/nav/div/div[6]/a',
-        "value_more": 'next'
+        "xpath_more": '// *[ @aria-label = "Next page"]',
+        "value_more": 'next',
+        "captcher": {
+            "xpath_catcher": '// *[ @aria-describedby = "checkbox-description"]'
+        }
     }
 ]
 
-indexers = [
-    {
-        "indexer": "yandex",
-        "url_search": 'https://yandex.com/',
-        "search_bar": '//*[@id="text"]',
-        "xpath_more": '/html/body/main/div[2]/div[2]/div/div/div[1]/nav/div/div[6]/a',
-        "value_more": 'next'
-    }
-]
+# indexers = [
+#     indexers_old[0]
+# ]
 
 links_casa = []
 links_filtrados = 0
@@ -43,8 +41,7 @@ search_bot.set_key_pharse(key_pharse)
 
 for i in indexers:
     search_bot.set_indexer(i)
-    print(i)
-    data_return = search_bot.search_terms()
+    data_return = search_bot.search_terms(quantity_of_pages=None)
     if data_return['filtered_links'] != 0:
         if data_return['home_links'] != 0:
             for i in data_return['home_links']:
@@ -59,6 +56,8 @@ for i in indexers:
         links_filtrados = links_filtrados + data_return['filtered_links']
     else:
         print("Nenhum link filtrado")
+
+search_bot.browser_quit()
     
 
 
